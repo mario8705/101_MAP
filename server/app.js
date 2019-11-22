@@ -6,9 +6,23 @@ const express = require("express"),
 require("./models/index")();
 const CoalitionsController = require("./controllers/Coalitions.controller");
 const UsersController = require("./controllers/Users.controller");
-const logger = require("./helpers/logger.helper"),  
+const fs = require('fs');
+
+const DOMAIN = 'matrix.morganjacquet.fr';
+const privateKey = fs.readFileSync(`/etc/letsencrypt/live/${DOMAIN}/privkey.pem`, 'utf8');
+const certificate = fs.readFileSync(`/etc/letsencrypt/live/${DOMAIN}/cert.pem`, 'utf8');
+const ca = fs.readFileSync(`/etc/letsencrypt/live/${DOMAIN}/chain.pem`, 'utf8');
+
+const credentials = {
+	key: privateKey,
+	cert: certificate,
+	ca: ca
+};
+
+const logger = require("./helpers/logger.helper"), 
+    https = require('https'),
     app = express(),
-    server = require("http").Server(app),
+    server = https.createServer(credentials, app),
     Storage = require("storage"),
     globalStorage = new Storage(),
     queue = new (require("./helpers/Queue.helper"))(globalStorage),
